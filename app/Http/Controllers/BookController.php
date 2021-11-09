@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Book;
+use App\Http\Resources\BookResource;
 
 class BookController extends Controller
 {
@@ -13,7 +15,8 @@ class BookController extends Controller
      */
     public function index()
     {
-        return Book::with('author')->last()->get();
+        //
+        return BookResource::collection(Book::latest()->get());
     }
 
     /**
@@ -24,13 +27,20 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
+        //
         $request->validate([
-            'author_id' => 'required',
-            'title' => 'required',
-            'body' => 'required',
+            'title'=>'min:3|max:10',
+            'body'=> 'min:3|max:50',
         ]);
 
-        return response()->json(['message' => 'created!'], 201);
+        $book = new Book();
+        $book -> title = $request-> title;
+        $book-> body = $request-> body;
+        $book-> author_id = $request-> author_id;
+
+        $book->save();
+
+        return response()->json(['meeeage'=>'Book Created'],200);
     }
 
     /**
@@ -41,8 +51,8 @@ class BookController extends Controller
      */
     public function show($id)
     {
-        return Book::findOrFail($id);
-
+        //
+        return new BookResource(Book::findOrFail($id));
     }
 
     /**
@@ -54,12 +64,20 @@ class BookController extends Controller
      */
     public function update(Request $request, $id)
     {
+        //
         $request->validate([
-            'author_id' => 'required',
-            'title' => 'required',
-            'body' => 'required',
+            'title'=>'min:3|max:10',
+            'body'=> 'min:3|max:50',
         ]);
-        return response()->json(['message' => 'updated!'], 200);
+
+        $book = Book::findOrFail($id);
+        $book -> title = $request-> title;
+        $book-> body = $request-> body;
+        $book-> author_id = $request-> author_id;
+
+        $book->save();
+
+        return response()->json(['meeeage'=>'Book Updated'],201);
     }
 
     /**
@@ -70,11 +88,12 @@ class BookController extends Controller
      */
     public function destroy($id)
     {
-        $isDelete = Book::destroy($id);
-
-        if ($isDelete == 1) 
-            return response()->json(['message' => 'Book deleted successfully !'], 200);
-
-        return response()->json(['message' => 'ID NOT EXIT'], 404);
+        //
+        $book = Book::destroy($id);
+        if($book ===1){
+            return response()->json(['message'=>'Deleted Book'],200);
+        }else{
+            return response()->json(['message'=>'Cannot delete no Book id']);
+        }
     }
 }

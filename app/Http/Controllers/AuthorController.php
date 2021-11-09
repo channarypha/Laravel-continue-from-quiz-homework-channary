@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Author;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\AuthorResource;
+
 class AuthorController extends Controller
 {
     /**
@@ -13,7 +16,8 @@ class AuthorController extends Controller
      */
     public function index()
     {
-        return Author::take(3)->get();
+        //
+        return AuthorResource::collection(Author::with('book')->get()->take(3));
     }
 
     /**
@@ -24,18 +28,20 @@ class AuthorController extends Controller
      */
     public function store(Request $request)
     {
-        // $post = new Author();
-        // $post-> name = $request-> name;
-        // $post->age = $request->age;
-        // $post->province = $request-> province;
-        // $post-> save();
+        //
         $request->validate([
-            'name' => 'required',
-            'age' => 'required',
-            'province' => 'required',
+            'name'=>'min:3|max:10',
+            'age'=>'min:1|max:10',
+            'province'=>'nullable',
         ]);
 
-        return response()->json(['message' => 'created!'], 201);
+        $author = new Author();
+        $author -> name = $request->name;
+        $author -> age = $request->age;
+        $author-> province = $request-> province;
+
+        $author->save();
+        return response()->json(['message'=>'Author Created'],200);
     }
 
     /**
@@ -46,7 +52,8 @@ class AuthorController extends Controller
      */
     public function show($id)
     {
-        return Author::findOrFail($id);
+        //
+        return new AuthorResource(Author::findOrFail($id));
     }
 
     /**
@@ -58,13 +65,20 @@ class AuthorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $post = Author::findOrFail($id);
-        $post-> name = $request-> name;
-        $post->age = $request->age;
-        $post->province = $request-> province;
-        $post-> save();
+        //
+        $request->validate([
+            'name'=>'min:3|max:10',
+            'age'=>'min:1|max:10',
+            'province'=>'nullable',
+        ]);
 
-        return response()->json(['message' => 'updated!'], 200);
+        $author = Author::findOrFail($id);
+        $author -> name = $request->name;
+        $author -> age = $request->age;
+        $author-> province = $request-> province;
+
+        $author->save();
+        return response()->json(['message'=>'Author Updated'],201);
     }
 
     /**
@@ -75,11 +89,14 @@ class AuthorController extends Controller
      */
     public function destroy($id)
     {
-        $isDelete = Author::destroy($id);
+        //
 
-        if ($isDelete == 1) 
-            return response()->json(['message' => 'Author deleted successfully !'], 200);
+        $author = Author::destroy($id);
+        if($author===1){
+            return response()->json(['message'=>'Author Deleted'],200);
+        }else{
+            return response()-> json(['message'=>'Cannot delet no Author id']);
+        }
 
-        return response()->json(['message' => 'ID NOT EXIT'], 404);
     }
 }

@@ -17,7 +17,7 @@ class CreateAuthorsTable extends Migration
             $table->id();
             $table->string('name');
             $table->integer('age');
-            $table->string('province');
+            $table-> string('province');
             $table->timestamps();
         });
     }
